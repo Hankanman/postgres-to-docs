@@ -1,5 +1,5 @@
 {
-  "name": "@klarna/postgres-to-docs",
+  "name": "@hankanman/postgres-to-docs",
   "version": "0.1.2",
   "description": "The smoooth way to document your Postgres database",
   "main": "./dist/index.js",
@@ -14,14 +14,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/klarna-incubator/postgres-to-docs.git"
+    "url": "git+https://github.com/Hankanman/postgres-to-docs.git"
   },
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/klarna-incubator/postgres-to-docs/issues"
+    "url": "https://github.com/Hankanman/postgres-to-docs/issues"
   },
-  "homepage": "https://github.com/klarna-incubator/postgres-to-docs#readme",
+  "homepage": "https://github.com/Hankanman/postgres-to-docs#readme",
   "dependencies": {
     "elm-decoders": "^6.0.1",
     "json2md": "^1.10.0",

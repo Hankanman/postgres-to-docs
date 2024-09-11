@@ -7,7 +7,7 @@ All members of our community are expected to follow our [Code of Conduct](CODE_O
 ## Get in touch
 
 - Report bugs, suggest features or view the source code on GitHub.
-- If you have any questions concerning this product, please contact developers@klarna.com.
+- If you have any questions concerning this product, please contact developers@hankanman.com.
 
 ## Contributing to development
 

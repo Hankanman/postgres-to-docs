@@ -147,7 +147,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-developers@klarna.com.
+developers@hankanman.com.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
@@ -226,7 +226,7 @@ All members of our community are expected to follow our [Code of Conduct](CODE_O
 ## Get in touch
 
 - Report bugs, suggest features or view the source code on GitHub.
-- If you have any questions concerning this product, please contact developers@klarna.com.
+- If you have any questions concerning this product, please contact developers@hankanman.com.
 
 ## Contributing to development
 
@@ -253,7 +253,7 @@ File: .github/SECURITY.md
 Klarna takes security seriously and wants to ensure that we maintain a secure environment for our customers and that we also provide secure solutions for the open source community. To help us achieve these goals, please note the following before using this software:
 
   - Review the software license to understand Klarna's obligations in terms of warranties and suitability for purpose
-  - For any questions or concerns about security, you can reach out directly to Klarna's security team at security@klarna.com 
+  - For any questions or concerns about security, you can reach out directly to Klarna's security team at security@hankanman.com 
   - We request that you work with our security team and opt for [responsible disclosure](https://corporate.walmart.com/article/responsible-disclosure-policy) using the guidelines below
   - We enforce SLAs on our security team and software engineers to remediate security bugs in a timely manner
   - All security related issues and pull requests you make should be tagged with "security" for easy identification
@@ -263,7 +263,7 @@ Klarna takes security seriously and wants to ensure that we maintain a secure en
 
 If you find a security bug in this repository, please work with Klarna's security team following responsible disclosure principles and these guidelines: 
 
-  - Do not submit a normal issue or pull request in our public repository, instead report directly to security@klarna.com (If you would like to encrypt, please contact us for keys)
+  - Do not submit a normal issue or pull request in our public repository, instead report directly to security@hankanman.com (If you would like to encrypt, please contact us for keys)
   - We will review your submission and may follow up for additional details
   - If you have a patch, we will review it and approve it privately; once approved for release you can submit it as a pull request publicly in our repos (we give credit where credit is due)
   - We will keep you informed during our investigation, feel free to check in for a status update
@@ -272,7 +272,7 @@ If you find a security bug in this repository, please work with Klarna's securit
 
 ## Contact / Misc.
 
-If you have any questions, please reach out directly to the Klarna Security team at security@klarna.com
+If you have any questions, please reach out directly to the Klarna Security team at security@hankanman.com
 
 ================
 File: .github/workflows/pr.yml
@@ -351,7 +351,7 @@ jobs:
         run: npm install is-windows
 
       - name: Use custom rules
-        run: wget https://raw.githubusercontent.com/klarna-incubator/meta/master/repolint.json
+        run: wget https://raw.githubusercontent.com/Hankanman/meta/master/repolint.json
 
       - name: Run repolint
         run: ./node_modules/.bin/repolinter $GITHUB_WORKSPACE
@@ -390,8 +390,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release
 
 <!-- Markdown link dfn's -->
-[unreleased]: https://github.com/klarna-incubator/postgres-to-docs/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/klarna-incubator/postgres-to-docs/releases/tag/v0.1.1
+[unreleased]: https://github.com/Hankanman/postgres-to-docs/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Hankanman/postgres-to-docs/releases/tag/v0.1.1
 
 ================
 File: docker-compose.yml
@@ -624,7 +624,7 @@ Apache License
 File: package.json
 ================
 {
-  "name": "@klarna/postgres-to-docs",
+  "name": "@hankanman/postgres-to-docs",
   "version": "0.1.2",
   "description": "The smoooth way to document your Postgres database",
   "main": "./dist/index.js",
@@ -637,14 +637,14 @@ File: package.json
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/klarna-incubator/postgres-to-docs.git"
+    "url": "git+https://github.com/Hankanman/postgres-to-docs.git"
   },
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/klarna-incubator/postgres-to-docs/issues"
+    "url": "https://github.com/Hankanman/postgres-to-docs/issues"
   },
-  "homepage": "https://github.com/klarna-incubator/postgres-to-docs#readme",
+  "homepage": "https://github.com/Hankanman/postgres-to-docs#readme",
   "dependencies": {
     "elm-decoders": "^6.0.1",
     "pg": "^8.5.1",
@@ -675,7 +675,7 @@ Make your database documentation smoooth by generating markdown for your schema.
 
 1.  Install through npm
 ```
-npm install @klarna/postgres-to-docs
+npm install @hankanman/postgres-to-docs
 ```
 
 2. Define a `json` config file
@@ -740,11 +740,11 @@ For license details, see the [LICENSE](LICENSE) file in the root of this project
 
 <!-- Markdown link & img dfn's -->
 [ci-image]: https://img.shields.io/badge/build-passing-brightgreen?style=flat-square
-[ci-url]: https://github.com/klarna-incubator/TODO
+[ci-url]: https://github.com/Hankanman/TODO
 [license-image]: https://img.shields.io/badge/license-Apache%202-blue?style=flat-square
 [license-url]: http://www.apache.org/licenses/LICENSE-2.0
 [klarna-image]: https://img.shields.io/badge/%20-Developed%20at%20Klarna-black?labelColor=ffb3c7&style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAOCAYAAAAmL5yKAAAAAXNSR0IArs4c6QAAAIRlWElmTU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAALQAAAAAQAAAtAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAABCgAwAEAAAAAQAAAA4AAAAA0LMKiwAAAAlwSFlzAABuugAAbroB1t6xFwAAAVlpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KTMInWQAAAVBJREFUKBVtkz0vREEUhsdXgo5qJXohkUgQ0fgFNFpR2V5ClP6CQu9PiB6lEL1I7B9A4/treZ47c252s97k2ffMmZkz5869m1JKL/AFbzAHaiRbmsIf4BdaMAZqMFsOXNxXkroKbxCPV5l8yHOJLVipn9/vEreLa7FguSN3S2ynA/ATeQuI8tTY6OOY34DQaQnq9mPCDtxoBwuRxPfAvPMWnARlB12KAi6eLTPruOOP4gcl33O6+Sjgc83DJkRH+h2MgorLzaPy68W48BG2S+xYnmAa1L+nOxEduMH3fgjGFvZeVkANZau68B6CrgJxWosFFpF7iG+h5wKZqwt42qIJtARu/ix+gqsosEq8D35o6R3c7OL4lAnTDljEe9B3Qa2BYzmHemDCt6Diwo6JY7E+A82OnN9HuoBruAQvUQ1nSxP4GVzBDRyBfygf6RW2/gD3NmEv+K/DZgAAAABJRU5ErkJggg==
-[klarna-url]: https://github.com/klarna-incubator
+[klarna-url]: https://github.com/Hankanman
 
 ================
 File: src/arguments.spec.ts
