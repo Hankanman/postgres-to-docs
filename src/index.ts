@@ -11,7 +11,8 @@ export const generateDocumentation = async (
   schema?: string,
   includeTables?: string[],
   excludeTables?: string[],
-  includeTypes?: boolean
+  includeTypes?: boolean,
+  pureMarkdown?: boolean
 ) => {
   const config = parseConfig(await File.read(configPath))
   const database = await createDatabase(config)
@@ -37,7 +38,8 @@ export const generateDocumentation = async (
     })
 
     const includeTypesFlag = includeTypes !== undefined ? includeTypes : config.includeTypes
-    await File.write(outputPath, format(schemaData, includeTypesFlag))
+    const pureMarkdownFlag = pureMarkdown !== undefined ? pureMarkdown : config.pureMarkdown
+    await File.write(outputPath, format(schemaData, includeTypesFlag, pureMarkdownFlag))
     console.log(`\nDocumentation written to ${outputPath}`)
   } catch (e) {
     throw e

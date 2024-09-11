@@ -18,7 +18,8 @@ const run = async () => {
       rawArguments.schema,
       rawArguments.includeTables ? rawArguments.includeTables.split(',') : undefined,
       rawArguments.excludeTables ? rawArguments.excludeTables.split(',') : undefined,
-      rawArguments.includeTypes !== undefined ? rawArguments.includeTypes === 'true' : undefined
+      rawArguments.includeTypes !== undefined ? rawArguments.includeTypes === 'true' : undefined,
+      rawArguments.pureMarkdown !== undefined ? rawArguments.pureMarkdown === 'true' : undefined
     )
     console.log('Documentation generated successfully!')
   } catch (e: unknown) {

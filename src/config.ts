@@ -10,6 +10,7 @@ export type Config = {
   includeTables?: string[]
   excludeTables?: string[]
   includeTypes: boolean
+  pureMarkdown: boolean // New option for pure Markdown output
 }
 
 const configDecoder = Decoder.object({
@@ -21,7 +22,8 @@ const configDecoder = Decoder.object({
   schema: Decoder.optional(Decoder.string),
   includeTables: Decoder.optional(Decoder.array(Decoder.string)),
   excludeTables: Decoder.optional(Decoder.array(Decoder.string)),
-  includeTypes: Decoder.optional(Decoder.boolean).map(value => value ?? true)
+  includeTypes: Decoder.optional(Decoder.boolean).map(value => value ?? true),
+  pureMarkdown: Decoder.optional(Decoder.boolean).map(value => value ?? false) // Default to false if not specified
 })
 
 export const parseConfig = (environment: any): Config =>

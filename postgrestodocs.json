@@ -5,9 +5,8 @@
     "password": "sR*zY9MVYncZATDMfy4jmjH$JCcF3^NGCut!B9R",
     "database": "postgres",
     "schema": "public",
-    "includeTables": [
-        "services"
-    ],
+    "includeTables": [],
     "exludeTables": [],
-    "includeTypes": false
+    "includeTypes": false,
+    "pureMarkdown": true
 }
