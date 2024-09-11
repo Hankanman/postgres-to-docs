@@ -2,19 +2,23 @@
 
 import { generateDocumentation } from '.'
 import { parseArguments } from './arguments'
+import { getDefaultConfigPath } from './config'
+import * as fs from 'fs'
 
 const run = async () => {
   const rawArguments = parseArguments(process.argv)
-  if (!rawArguments.config || !rawArguments.output) {
-    console.log('Error: "--config" and "--output" are required')
+  const configPath = rawArguments.config || getDefaultConfigPath()
+
+  if (!fs.existsSync(configPath)) {
+    console.error(`Error: Config file not found at ${configPath}`)
     process.exit(1)
   }
 
   try {
     console.log('Generating documentation...')
     await generateDocumentation(
-      rawArguments.config, 
-      rawArguments.output, 
+      configPath,
+      rawArguments.output,
       rawArguments.schema,
       rawArguments.includeTables ? rawArguments.includeTables.split(',') : undefined,
       rawArguments.excludeTables ? rawArguments.excludeTables.split(',') : undefined,

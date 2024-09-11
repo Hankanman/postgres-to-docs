@@ -4,10 +4,11 @@ import { format } from './format'
 import { createRepository } from './repository'
 import { parseConfig } from './config'
 import * as File from './file'
+import * as path from 'path'
 
 export const generateDocumentation = async (
   configPath: string,
-  outputPath: string,
+  outputPath?: string,
   schema?: string,
   includeTables?: string[],
   excludeTables?: string[],
@@ -39,8 +40,14 @@ export const generateDocumentation = async (
 
     const includeTypesFlag = includeTypes !== undefined ? includeTypes : config.includeTypes
     const pureMarkdownFlag = pureMarkdown !== undefined ? pureMarkdown : config.pureMarkdown
-    await File.write(outputPath, format(schemaData, includeTypesFlag, pureMarkdownFlag))
-    console.log(`\nDocumentation written to ${outputPath}`)
+    const finalOutputPath = outputPath || config.output || `schema-${config.database}.md`
+    
+    // Ensure the output directory exists
+    const outputDir = path.dirname(finalOutputPath)
+    await File.ensureDirectoryExists(outputDir)
+    
+    await File.write(finalOutputPath, format(schemaData, includeTypesFlag, pureMarkdownFlag))
+    console.log(`\nDocumentation written to ${finalOutputPath}`)
   } catch (e) {
     throw e
   } finally {

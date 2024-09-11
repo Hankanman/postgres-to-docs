@@ -1,4 +1,5 @@
 import { Decoder } from 'elm-decoders'
+import * as path from 'path'
 
 export type Config = {
   host: string
@@ -10,7 +11,8 @@ export type Config = {
   includeTables?: string[]
   excludeTables?: string[]
   includeTypes: boolean
-  pureMarkdown: boolean // New option for pure Markdown output
+  pureMarkdown: boolean
+  output?: string
 }
 
 const configDecoder = Decoder.object({
@@ -23,8 +25,16 @@ const configDecoder = Decoder.object({
   includeTables: Decoder.optional(Decoder.array(Decoder.string)),
   excludeTables: Decoder.optional(Decoder.array(Decoder.string)),
   includeTypes: Decoder.optional(Decoder.boolean).map(value => value ?? true),
-  pureMarkdown: Decoder.optional(Decoder.boolean).map(value => value ?? false) // Default to false if not specified
+  pureMarkdown: Decoder.optional(Decoder.boolean).map(value => value ?? false),
+  output: Decoder.optional(Decoder.string)
 })
 
-export const parseConfig = (environment: any): Config =>
-  configDecoder.guard(environment)
+export const parseConfig = (environment: any): Config => {
+  const config = configDecoder.guard(environment)
+  if (!config.output) {
+    config.output = `schema-${config.database}.md`
+  }
+  return config
+}
+
+export const getDefaultConfigPath = () => path.join(process.cwd(), 'postgrestodocs.json')
