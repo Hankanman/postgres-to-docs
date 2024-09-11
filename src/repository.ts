@@ -41,7 +41,7 @@ const columnResultDecoder: Decoder<Column[]> = Decoder.array(
   })
 )
 
-const get_datatype = (res: {udt_name: string, data_type: string, character_maximum_length: number | undefined}) => {
+const get_datatype = (res: { udt_name: string, data_type: string, character_maximum_length: number | undefined }) => {
   if (res.data_type == 'USER-DEFINED') {
     return res.udt_name
   }
@@ -147,24 +147,61 @@ const compositeTypeResultDecoder: Decoder<CompositeType[]> = Decoder.array(
   }))
 )
 
-export const createRepository = (query: Database['query'], schema?: string) => {
+export const createRepository = (
+  query: Database['query'], 
+  schema?: string,
+  includeTables?: string[],
+  excludeTables?: string[]
+) => {
   const schemaFilter = schema ? `AND schemaname = '${schema}'` : ''
+  
+  const createTableFilter = () => {
+    if (includeTables && includeTables.length > 0) {
+      return `AND (${includeTables.map(pattern => `tablename ~ '${pattern}'`).join(' OR ')})`
+    }
+    if (excludeTables && excludeTables.length > 0) {
+      return `AND NOT (${excludeTables.map(pattern => `tablename ~ '${pattern}'`).join(' OR ')})`
+    }
+    return ''
+  }
+
+  const tableFilter = createTableFilter()
+
   const selectTables = async () => {
-    const queryString = `SELECT * FROM pg_catalog.pg_tables WHERE tablename NOT LIKE 'sql_%' AND tablename NOT LIKE 'pg_%' ${schemaFilter}`
+    const queryString = `
+      SELECT * 
+      FROM pg_catalog.pg_tables 
+      WHERE tablename NOT LIKE 'sql_%' 
+        AND tablename NOT LIKE 'pg_%' 
+        ${schemaFilter}
+        ${tableFilter}
+    `
     const result = await query(queryString)
     const decoded = tableResultDecoder.guard(result.rows)
     return decoded
   }
 
   const selectColumns = async () => {
-    const queryString = `SELECT * FROM information_schema."columns" WHERE table_schema = $1 ORDER BY ordinal_position`
+    const queryString = `
+      SELECT * 
+      FROM information_schema.columns 
+      WHERE table_schema = $1
+        ${tableFilter ? `AND (${tableFilter.replace(/tablename/g, 'table_name').slice(4)})` : ''}
+      ORDER BY ordinal_position
+    `
     const result = await query(queryString, [schema || 'public'])
     const decoded = columnResultDecoder.guard(result.rows)
     return decoded
   }
 
   const selectViews = async () => {
-    const queryString = `SELECT * FROM pg_catalog.pg_tables WHERE tablename NOT LIKE 'sql_%' AND tablename NOT LIKE 'pg_%' ${schemaFilter}`
+    const queryString = `
+      SELECT table_name 
+      FROM INFORMATION_SCHEMA.views 
+      WHERE table_schema = ANY (current_schemas(false)) 
+        ${schemaFilter ? schemaFilter.replace('schemaname', 'table_schema') : ''}
+        ${tableFilter ? tableFilter.replace('tablename', 'table_name') : ''}
+    `
     const result = await query(queryString)
     const decoded = viewResultDecoder.guard(result.rows)
     return decoded

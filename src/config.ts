@@ -6,7 +6,10 @@ export type Config = {
   password: string
   database: string
   port: number
-  schema?: string // New optional schema property
+  schema?: string
+  includeTables?: string[]
+  excludeTables?: string[]
+  includeTypes: boolean
 }
 
 const configDecoder = Decoder.object({
@@ -15,7 +18,10 @@ const configDecoder = Decoder.object({
   password: Decoder.string,
   database: Decoder.string,
   port: Decoder.number,
-  schema: Decoder.optional(Decoder.string) // New optional schema decoder
+  schema: Decoder.optional(Decoder.string),
+  includeTables: Decoder.optional(Decoder.array(Decoder.string)),
+  excludeTables: Decoder.optional(Decoder.array(Decoder.string)),
+  includeTypes: Decoder.optional(Decoder.boolean).map(value => value ?? true)
 })
 
 export const parseConfig = (environment: any): Config =>

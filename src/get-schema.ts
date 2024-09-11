@@ -88,7 +88,12 @@ const withColumns = (
 
 export const getSchema = async (repository: Repository) => {
   const tables = await repository.selectTables()
-  const views = await repository.selectViews()
+  let views: View[] = []
+  try {
+    views = await repository.selectViews()
+  } catch (error) {
+    console.error('Error fetching views:', error)
+  }
   const columns = await repository.selectColumns()
   const foreignKeys = await repository.selectForeignKeys()
   const primaryKeys = await repository.selectPrimaryKeys()

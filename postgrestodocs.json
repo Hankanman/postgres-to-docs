@@ -1,8 +1,13 @@
 {
     "host": "aws-0-eu-west-2.pooler.supabase.com",
     "port": 6543,
-    "user": "mjltwxgtxzytmpembgbx",
+    "user": "postgres.mjltwxgtxzytmpembgbx",
     "password": "sR*zY9MVYncZATDMfy4jmjH$JCcF3^NGCut!B9R",
     "database": "postgres",
-    "schema": "public"
+    "schema": "public",
+    "includeTables": [
+        "services"
+    ],
+    "exludeTables": [],
+    "includeTypes": false
 }

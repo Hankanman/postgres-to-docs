@@ -10,7 +10,7 @@ import typeDocumentation from './postgre-data-types.json'
 
 const TYPES = typeDocumentation as any
 
-export const format = (schema: Schema) => {
+export const format = (schema: Schema, includeTypes: boolean = true) => {
   const customTypeNames = schema.customTypes.map((t) => t.name)
   const compositeTypeNames = schema.compositeTypes.map((t) => t.name)
   const typeNames = new Set(customTypeNames.concat(compositeTypeNames))
@@ -18,11 +18,11 @@ export const format = (schema: Schema) => {
     [
       generateTableSection(schema.tables, typeNames),
       generateViewsSection(schema.views, typeNames),
-      generateTypesSection(
+      ...(includeTypes ? [generateTypesSection(
         schema.customTypes,
         schema.compositeTypes,
         typeNames
-      ),
+      )] : []),
     ].flat()
   )
 }
