@@ -19,7 +19,8 @@ npm install @klarna/postgres-to-docs
     "port": 5432,
     "user": "user",
     "password": "password",
-    "database": "database"
+    "database": "database",
+    "schema": "public"
 }
 ```
 3. Run the tool

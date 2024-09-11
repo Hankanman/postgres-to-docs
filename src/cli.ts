@@ -11,7 +11,7 @@ const run = async () => {
   }
 
   try {
-    await generateDocumentation(rawArguments.config, rawArguments.output)
+    await generateDocumentation(rawArguments.config, rawArguments.output, rawArguments.schema)
   } catch (e) {
     console.log('Failed', e)
     process.exit(1)

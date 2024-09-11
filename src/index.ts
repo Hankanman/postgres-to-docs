@@ -7,11 +7,12 @@ import * as File from './file'
 
 export const generateDocumentation = async (
   configPath: string,
-  outputPath: string
+  outputPath: string,
+  schema?: string
 ) => {
   const config = parseConfig(await File.read(configPath))
   const database = await createDatabase(config)
-  const repository = createRepository(database.query)
+  const repository = createRepository(database.query, schema || config.schema)
   try {
     const schema = await getSchema(repository)
     await File.write(outputPath, format(schema))

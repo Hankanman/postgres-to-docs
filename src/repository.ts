@@ -147,22 +147,24 @@ const compositeTypeResultDecoder: Decoder<CompositeType[]> = Decoder.array(
   }))
 )
 
-export const createRepository = (query: Database['query']) => {
+export const createRepository = (query: Database['query'], schema?: string) => {
+  const schemaFilter = schema ? `AND schemaname = '${schema}'` : ''
   const selectTables = async () => {
-    const queryString = `SELECT * FROM pg_catalog.pg_tables WHERE tablename NOT LIKE 'sql_%' AND tablename NOT LIKE 'pg_%'`
+    const queryString = `SELECT * FROM pg_catalog.pg_tables WHERE tablename NOT LIKE 'sql_%' AND tablename NOT LIKE 'pg_%' ${schemaFilter}`
     const result = await query(queryString)
     const decoded = tableResultDecoder.guard(result.rows)
     return decoded
   }
+
   const selectColumns = async () => {
-    const queryString = `SELECT * FROM information_schema."columns" ORDER BY ordinal_position`
-    const result = await query(queryString)
+    const queryString = `SELECT * FROM information_schema."columns" WHERE table_schema = $1 ORDER BY ordinal_position`
+    const result = await query(queryString, [schema || 'public'])
     const decoded = columnResultDecoder.guard(result.rows)
     return decoded
   }
 
   const selectViews = async () => {
-    const queryString = `SELECT table_name FROM INFORMATION_SCHEMA.views WHERE table_schema = ANY (current_schemas(false))`
+    const queryString = `SELECT * FROM pg_catalog.pg_tables WHERE tablename NOT LIKE 'sql_%' AND tablename NOT LIKE 'pg_%' ${schemaFilter}`
     const result = await query(queryString)
     const decoded = viewResultDecoder.guard(result.rows)
     return decoded
