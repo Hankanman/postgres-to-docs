@@ -3,12 +3,14 @@
   "version": "0.1.2",
   "description": "The smoooth way to document your Postgres database",
   "main": "./dist/index.js",
-  "bin": "./dist/cli.js",
-  "prepublish": "tsc -p ./tsconfig.json",
+  "bin": {
+    "postgres-to-docs": "./dist/cli.js"
+  },
   "scripts": {
     "test": "docker-compose up -d && sleep 5 && jest ./src --passWithNoTests && docker-compose down",
     "start:dev": "ts-node ./src/cli.ts",
-    "build": "tsc -p ./tsconfig.json"
+    "build": "tsc -p ./tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
