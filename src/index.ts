@@ -13,7 +13,9 @@ export const generateDocumentation = async (
   includeTables?: string[],
   excludeTables?: string[],
   includeTypes?: boolean,
-  pureMarkdown?: boolean
+  pureMarkdown?: boolean,
+  includeRLS?: boolean,
+  includeToc?: boolean
 ) => {
   const config = parseConfig(await File.read(configPath))
   const database = await createDatabase(config)
@@ -40,13 +42,18 @@ export const generateDocumentation = async (
 
     const includeTypesFlag = includeTypes !== undefined ? includeTypes : config.includeTypes
     const pureMarkdownFlag = pureMarkdown !== undefined ? pureMarkdown : config.pureMarkdown
+    const includeRLSFlag = includeRLS !== undefined ? includeRLS : config.includeRLS
+    const includeTocFlag = includeToc !== undefined ? includeToc : config.includeToc
     const finalOutputPath = outputPath || config.output || `schema-${config.database}.md`
     
     // Ensure the output directory exists
     const outputDir = path.dirname(finalOutputPath)
     await File.ensureDirectoryExists(outputDir)
     
-    await File.write(finalOutputPath, format(schemaData, includeTypesFlag, pureMarkdownFlag))
+    await File.write(
+      finalOutputPath, 
+      format(schemaData, includeTypesFlag, pureMarkdownFlag, includeRLSFlag, includeTocFlag)
+    )
     console.log(`\nDocumentation written to ${finalOutputPath}`)
   } catch (e) {
     throw e

@@ -13,6 +13,8 @@ export type Config = {
   includeTypes: boolean
   pureMarkdown: boolean
   output?: string
+  includeRLS?: boolean
+  includeToc?: boolean
 }
 
 const configDecoder = Decoder.object({
@@ -26,7 +28,9 @@ const configDecoder = Decoder.object({
   excludeTables: Decoder.optional(Decoder.array(Decoder.string)),
   includeTypes: Decoder.optional(Decoder.boolean).map(value => value ?? true),
   pureMarkdown: Decoder.optional(Decoder.boolean).map(value => value ?? false),
-  output: Decoder.optional(Decoder.string)
+  output: Decoder.optional(Decoder.string),
+  includeRLS: Decoder.optional(Decoder.boolean).map(value => value ?? true),
+  includeToc: Decoder.optional(Decoder.boolean).map(value => value ?? true),
 })
 
 export const parseConfig = (environment: any): Config => {

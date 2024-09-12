@@ -1,6 +1,6 @@
 {
   "name": "@hankanman/postgres-to-docs",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "The smoooth way to document your Postgres database",
   "main": "./dist/index.js",
   "bin": {

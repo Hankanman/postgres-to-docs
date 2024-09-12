@@ -4,36 +4,86 @@ import {
   TableDescription,
   CompositeTypeDescription,
 } from './get-schema'
-import { CustomType } from './repository'
+import { CustomType, RLSPolicy } from './repository'
 import json2md from 'json2md'
 import typeDocumentation from './postgre-data-types.json'
 
 const TYPES = typeDocumentation as any
 
-export const format = (schema: Schema, includeTypes: boolean = true, pureMarkdown: boolean = false) => {
+type TocItem = string;
+
+export const format = (
+  schema: Schema,
+  includeTypes: boolean = true,
+  pureMarkdown: boolean = false,
+  includeRLS: boolean = true,
+  includeToc: boolean = true
+) => {
   const customTypeNames = schema.customTypes.map((t) => t.name)
   const compositeTypeNames = schema.compositeTypes.map((t) => t.name)
   const typeNames = new Set(customTypeNames.concat(compositeTypeNames))
-  return json2md(
-    [
-      generateTableSection(schema.tables, typeNames, pureMarkdown),
-      generateViewsSection(schema.views, typeNames, pureMarkdown),
-      ...(includeTypes ? [generateTypesSection(
-        schema.customTypes,
-        schema.compositeTypes,
-        typeNames,
-        pureMarkdown
-      )] : []),
-    ].flat()
-  )
+
+  const sections = [
+    generateTableSection(schema.tables, typeNames, schema.rlsPolicies, pureMarkdown, includeRLS),
+    generateViewsSection(schema.views, typeNames, pureMarkdown),
+    ...(includeTypes ? [generateTypesSection(
+      schema.customTypes,
+      schema.compositeTypes,
+      typeNames,
+      pureMarkdown
+    )] : []),
+  ].flat()
+
+  if (includeToc) {
+    const toc = generateTableOfContents(sections)
+    return json2md([
+      { h1: 'Database Schema Documentation' },
+      { h2: 'Table of Contents' },
+      ...toc.map(item => item === '' ? { p: '' } : { p: item }),
+      { hr: '' },
+      ...sections
+    ])
+  }
+  else {
+    return json2md([
+      { h1: 'Database Schema Documentation' },
+      { hr: '' },
+      ...sections
+    ])
+  }
 }
 
-const generateTableSection = (tables: TableDescription[], typeNames: Set<string>, pureMarkdown: boolean) => {
+const generateTableOfContents = (sections: any[]): TocItem[] => {
+  const toc: TocItem[] = [];
+  let currentH2: string | null = null;
+
+  for (const section of sections) {
+    if (section.h2) {
+      currentH2 = section.h2;
+      toc.push(`- [${section.h2}](#${section.h2.toLowerCase().replace(/\s+/g, '-')})`);
+    } else if (section.h3) {
+      toc.push(`  - [${section.h3}](#${section.h3.toLowerCase().replace(/\s+/g, '-')})`);
+    }
+  }
+
+  return toc;
+}
+
+
+const generateTableSection = (
+  tables: TableDescription[],
+  typeNames: Set<string>,
+  rlsPolicies: RLSPolicy[],
+  pureMarkdown: boolean,
+  includeRLS: boolean
+) => {
   if (tables.length === 0) {
     return []
   }
 
-  return [{ h1: 'Tables' }, generateTablesMarkdown(tables, typeNames, pureMarkdown)]
+  return [{ h2: 'Tables' }, ...tables.flatMap(table =>
+    generateTableDescription(table, typeNames, rlsPolicies, pureMarkdown, includeRLS)
+  )]
 }
 
 const generateViewsSection = (views: TableDescription[], typeNames: Set<string>, pureMarkdown: boolean) => {
@@ -41,7 +91,7 @@ const generateViewsSection = (views: TableDescription[], typeNames: Set<string>,
     return []
   }
 
-  return [{ h1: 'Views' }, generateTablesMarkdown(views, typeNames, pureMarkdown)]
+  return [{ h2: 'Views' }, generateTablesMarkdown(views, typeNames, pureMarkdown)]
 }
 
 const generateTypesSection = (
@@ -55,7 +105,7 @@ const generateTypesSection = (
   }
 
   return [
-    { h1: 'Types' },
+    { h2: 'Types' },
     generateTypesMarkdown(customTypes, compositeTypes, typeNames, pureMarkdown),
   ]
 }
@@ -63,8 +113,10 @@ const generateTypesSection = (
 const generateTablesMarkdown = (
   tables: TableDescription[],
   typeNames: Set<string>,
-  pureMarkdown: boolean
-) => tables.map((t) => generateTableDescription(t, typeNames, pureMarkdown))
+  pureMarkdown: boolean,
+  rlsPolicies: RLSPolicy[] = [],
+  includeRLS: boolean = true
+) => tables.map((t) => generateTableDescription(t, typeNames, rlsPolicies, pureMarkdown, includeRLS))
 
 const generateTypesMarkdown = (
   customTypes: CustomType[],
@@ -150,14 +202,45 @@ const maybeCreateTypeLink = (type: string, customTypeNames: Set<string>, pureMar
 const generateTableDescription = (
   tableDescription: TableDescription,
   typeNames: Set<string>,
-  pureMarkdown: boolean
+  rlsPolicies: RLSPolicy[],
+  pureMarkdown: boolean,
+  includeRLS: boolean
 ) => {
-  const nameWithAnchor = pureMarkdown 
+  const nameWithAnchor = pureMarkdown
     ? tableDescription.name
     : `<a name="${tableDescription.name}"></a>${tableDescription.name}`
+
+  const tablePolicies = rlsPolicies.filter(policy => policy.table === tableDescription.name)
+
   return [
     { h3: nameWithAnchor },
     generateMarkdownTable(tableDescription.columns, typeNames, pureMarkdown),
+    ...(includeRLS && tablePolicies.length > 0 ? generateRLSPoliciesSection(tablePolicies, pureMarkdown) : []),
+  ]
+}
+
+const generateRLSPoliciesSection = (policies: RLSPolicy[], pureMarkdown: boolean) => {
+  return [
+    { h4: 'Row-Level Security Policies' },
+    ...policies.map(policy => generateRLSPolicyDescription(policy, pureMarkdown))
+  ]
+}
+
+const generateRLSPolicyDescription = (policy: RLSPolicy, pureMarkdown: boolean) => {
+  return [
+    { p: `**Policy**: ${policy.name}` },
+    { p: `**Command**: ${policy.command}` },
+    { p: `**Roles**: ${policy.roles.join(', ')}` },
+    { p: '**Definition**:' },
+    { code: { language: 'sql', content: policy.definition } },
+    ...(policy.using ? [
+      { p: '**USING expression**:' },
+      { code: { language: 'sql', content: policy.using } }
+    ] : []),
+    ...(policy.withCheck ? [
+      { p: '**WITH CHECK expression**:' },
+      { code: { language: 'sql', content: policy.withCheck } }
+    ] : []),
   ]
 }
 

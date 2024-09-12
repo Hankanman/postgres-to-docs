@@ -147,14 +147,44 @@ const compositeTypeResultDecoder: Decoder<CompositeType[]> = Decoder.array(
   }))
 )
 
+export type RLSPolicy = {
+  table: string
+  name: string
+  definition: string
+  command: string
+  roles: string[]
+  using: string
+  withCheck: string
+}
+
+const rlsPolicyDecoder: Decoder<RLSPolicy[]> = Decoder.array(
+  Decoder.object({
+    table_name: Decoder.string,
+    policy_name: Decoder.string,
+    policy_definition: Decoder.string,
+    command: Decoder.string,
+    roles: Decoder.string.map(s => s.split(',')),
+    using: Decoder.optional(Decoder.string),
+    with_check: Decoder.optional(Decoder.string)
+  }).map(res => ({
+    table: res.table_name,
+    name: res.policy_name,
+    definition: res.policy_definition,
+    command: res.command,
+    roles: res.roles,
+    using: res.using || '',
+    withCheck: res.with_check || ''
+  }))
+)
+
 export const createRepository = (
-  query: Database['query'], 
+  query: Database['query'],
   schema?: string,
   includeTables?: string[],
   excludeTables?: string[]
 ) => {
   const schemaFilter = schema ? `AND schemaname = '${schema}'` : ''
-  
+
   const createTableFilter = () => {
     if (includeTables && includeTables.length > 0) {
       return `AND (${includeTables.map(pattern => `tablename ~ '${pattern}'`).join(' OR ')})`
@@ -204,6 +234,27 @@ export const createRepository = (
     `
     const result = await query(queryString)
     const decoded = viewResultDecoder.guard(result.rows)
+    return decoded
+  }
+
+  const selectRLSPolicies = async () => {
+    const queryString = `
+      SELECT
+        schemaname,
+        tablename AS table_name,
+        policyname AS policy_name,
+        format('%I ON %I.%I TO %s', policyname, schemaname, tablename, roles) AS policy_definition,
+        cmd AS command,
+        roles::text,
+        qual AS using,
+        with_check
+      FROM
+        pg_policies
+      WHERE
+        schemaname = $1
+    `
+    const result = await query(queryString, [schema || 'public'])
+    const decoded = rlsPolicyDecoder.guard(result.rows)
     return decoded
   }
 
@@ -353,6 +404,7 @@ export const createRepository = (
     selectPrimaryKeys,
     selectCustomTypes,
     selectCompositeTypes,
+    selectRLSPolicies
   }
 }
 

@@ -7,6 +7,7 @@ import {
   View,
   Repository,
   CompositeType,
+  RLSPolicy,
 } from './repository'
 
 export type ColumnDescription = Column & {
@@ -34,6 +35,7 @@ export type Schema = {
   customTypes: CustomType[]
   compositeTypes: CompositeTypeDescription[]
   views: TableDescription[]
+  rlsPolicies: RLSPolicy[]
 }
 
 const getColumnsForTable = (table: Table, columns: Column[]) =>
@@ -88,17 +90,13 @@ const withColumns = (
 
 export const getSchema = async (repository: Repository) => {
   const tables = await repository.selectTables()
-  let views: View[] = []
-  try {
-    views = await repository.selectViews()
-  } catch (error) {
-    console.error('Error fetching views:', error)
-  }
+  const views = await repository.selectViews()
   const columns = await repository.selectColumns()
   const foreignKeys = await repository.selectForeignKeys()
   const primaryKeys = await repository.selectPrimaryKeys()
   const customTypes = await repository.selectCustomTypes()
   const compositeTypes = await repository.selectCompositeTypes()
+  const rlsPolicies = await repository.selectRLSPolicies()
 
   const enrichedTables = tables.map((table) =>
     withColumns(table, columns, foreignKeys, primaryKeys)
@@ -119,6 +117,7 @@ export const getSchema = async (repository: Repository) => {
     customTypes: filteredCustomTypes,
     compositeTypes: compactedComposites,
     views: enrichedViews,
+    rlsPolicies,
   }
 }
 

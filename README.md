@@ -24,7 +24,9 @@ Make your database documentation smoooth by generating markdown for your schema.
         "includeTables": [],
         "exludeTables": [],
         "includeTypes": false,
-        "pureMarkdown": false
+        "pureMarkdown": false,
+        "includeRLS": false,
+        "includeToc": false
     }
     ```
 3. Run the tool
