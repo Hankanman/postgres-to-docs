@@ -177,6 +177,33 @@ const rlsPolicyDecoder: Decoder<RLSPolicy[]> = Decoder.array(
   }))
 )
 
+export type DatabaseFunction = {
+  name: string
+  returnType: string
+  arguments: string
+  definition: string
+  language: string
+  volatility: string
+}
+
+const functionResultDecoder: Decoder<DatabaseFunction[]> = Decoder.array(
+  Decoder.object({
+    routine_name: Decoder.string,
+    data_type: Decoder.string,
+    arguments: Decoder.string,
+    definition: Decoder.string,
+    language: Decoder.string,
+    volatility: Decoder.string
+  }).map((res) => ({
+    name: res.routine_name,
+    returnType: res.data_type,
+    arguments: res.arguments,
+    definition: res.definition,
+    language: res.language,
+    volatility: res.volatility
+  }))
+)
+
 export const createRepository = (
   query: Database['query'],
   schema?: string,
@@ -396,6 +423,31 @@ export const createRepository = (
     return decoded
   }
 
+  const selectFunctions = async () => {
+    const queryString = `
+      SELECT 
+        p.proname AS routine_name,
+        pg_get_function_result(p.oid) AS data_type,
+        pg_get_function_arguments(p.oid) AS arguments,
+        pg_get_functiondef(p.oid) AS definition,
+        l.lanname AS language,
+        CASE p.provolatile
+          WHEN 'i' THEN 'IMMUTABLE'
+          WHEN 's' THEN 'STABLE'
+          WHEN 'v' THEN 'VOLATILE'
+        END AS volatility
+      FROM pg_proc p
+      LEFT JOIN pg_namespace n ON p.pronamespace = n.oid
+      LEFT JOIN pg_language l ON p.prolang = l.oid
+      WHERE n.nspname = $1
+        AND p.prokind = 'f'
+      ORDER BY p.proname;
+    `
+    const result = await query(queryString, [schema || 'public'])
+    const decoded = functionResultDecoder.guard(result.rows)
+    return decoded
+  }
+
   return {
     selectTables,
     selectColumns,
@@ -404,7 +456,8 @@ export const createRepository = (
     selectPrimaryKeys,
     selectCustomTypes,
     selectCompositeTypes,
-    selectRLSPolicies
+    selectRLSPolicies,
+    selectFunctions
   }
 }
 

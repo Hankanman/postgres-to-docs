@@ -4,7 +4,7 @@ import {
   TableDescription,
   CompositeTypeDescription,
 } from './get-schema'
-import { CustomType, RLSPolicy } from './repository'
+import { CustomType, RLSPolicy, DatabaseFunction } from './repository'
 import json2md from 'json2md'
 import typeDocumentation from './postgre-data-types.json'
 
@@ -17,7 +17,8 @@ export const format = (
   includeTypes: boolean = true,
   pureMarkdown: boolean = false,
   includeRLS: boolean = true,
-  includeToc: boolean = true
+  includeToc: boolean = true,
+  includeFunctions: boolean = true
 ) => {
   const customTypeNames = schema.customTypes.map((t) => t.name)
   const compositeTypeNames = schema.compositeTypes.map((t) => t.name)
@@ -32,6 +33,7 @@ export const format = (
       typeNames,
       pureMarkdown
     )] : []),
+    ...(includeFunctions ? [generateFunctionsSection(schema.functions, typeNames, pureMarkdown)] : []),
   ].flat()
 
   if (includeToc) {
@@ -288,4 +290,39 @@ const formatForeignKey = (pureMarkdown: boolean, foreignKey?: string) =>
 const formatForeignKeyLink = (foreignKey: string, pureMarkdown: boolean) => {
   const otherTable = foreignKey.split('.')[0]
   return pureMarkdown ? foreignKey : `[${foreignKey}](#${otherTable})`
+}
+
+const generateFunctionsSection = (
+  functions: DatabaseFunction[],
+  typeNames: Set<string>,
+  pureMarkdown: boolean
+) => {
+  if (functions.length === 0) {
+    return []
+  }
+
+  return [
+    { h2: 'Functions' },
+    ...functions.map(func => generateFunctionDescription(func, typeNames, pureMarkdown))
+  ]
+}
+
+const generateFunctionDescription = (
+  func: DatabaseFunction,
+  typeNames: Set<string>,
+  pureMarkdown: boolean
+) => {
+  const nameWithAnchor = pureMarkdown
+    ? func.name
+    : `<a name="${func.name}"></a>${func.name}`
+
+  return [
+    { h3: nameWithAnchor },
+    { p: '**Signature**:' },
+    { code: { language: 'sql', content: `${func.name}(${func.arguments}) RETURNS ${func.returnType}` } },
+    { p: '**Language**: ' + func.language },
+    { p: '**Volatility**: ' + func.volatility },
+    { p: '**Definition**:' },
+    { code: { language: 'sql', content: func.definition.trim() } },
+  ]
 }

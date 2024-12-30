@@ -15,6 +15,7 @@ export type Config = {
   output?: string
   includeRLS?: boolean
   includeToc?: boolean
+  includeFunctions?: boolean
 }
 
 const configDecoder = Decoder.object({
@@ -31,6 +32,7 @@ const configDecoder = Decoder.object({
   output: Decoder.optional(Decoder.string),
   includeRLS: Decoder.optional(Decoder.boolean).map(value => value ?? true),
   includeToc: Decoder.optional(Decoder.boolean).map(value => value ?? true),
+  includeFunctions: Decoder.optional(Decoder.boolean).map(value => value ?? true),
 })
 
 export const parseConfig = (environment: any): Config => {

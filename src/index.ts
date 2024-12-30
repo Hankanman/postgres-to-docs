@@ -30,15 +30,43 @@ export const generateDocumentation = async (
     
     // Print list of tables
     console.log('Tables included in documentation:')
-    schemaData.tables.forEach(table => {
-      console.log(`- ${table.name}`)
-    })
+    if (schemaData.tables.length === 0) {
+      console.log('None')
+    } else {
+      schemaData.tables.forEach(table => {
+        console.log(`- ${table.name}`)
+      })
+    }
     
     // Print list of views
     console.log('\nViews found:')
-    schemaData.views.forEach(view => {
-      console.log(`- ${view.name}`)
-    })
+    if (schemaData.views.length === 0) {
+      console.log('None')
+    } else {
+      schemaData.views.forEach(view => {
+        console.log(`- ${view.name}`)
+      })
+    }
+
+    // Print list of functions
+    console.log('\nFunctions found:')
+    if (schemaData.functions.length === 0) {
+      console.log('None')
+    } else {
+      schemaData.functions.forEach(func => {
+        console.log(`- ${func.name}(${func.arguments}) -> ${func.returnType}`)
+      })
+    }
+
+    // Print list of RLS policies
+    console.log('\nRow Level Security policies found:')
+    if (schemaData.rlsPolicies.length === 0) {
+      console.log('None')
+    } else {
+      schemaData.rlsPolicies.forEach(policy => {
+        console.log(`- ${policy.table}: ${policy.name} (${policy.command})`)
+      })
+    }
 
     const includeTypesFlag = includeTypes !== undefined ? includeTypes : config.includeTypes
     const pureMarkdownFlag = pureMarkdown !== undefined ? pureMarkdown : config.pureMarkdown

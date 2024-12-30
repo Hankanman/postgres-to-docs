@@ -8,6 +8,7 @@ import {
   Repository,
   CompositeType,
   RLSPolicy,
+  DatabaseFunction,
 } from './repository'
 
 export type ColumnDescription = Column & {
@@ -36,6 +37,7 @@ export type Schema = {
   compositeTypes: CompositeTypeDescription[]
   views: TableDescription[]
   rlsPolicies: RLSPolicy[]
+  functions: DatabaseFunction[]
 }
 
 const getColumnsForTable = (table: Table, columns: Column[]) =>
@@ -97,6 +99,7 @@ export const getSchema = async (repository: Repository) => {
   const customTypes = await repository.selectCustomTypes()
   const compositeTypes = await repository.selectCompositeTypes()
   const rlsPolicies = await repository.selectRLSPolicies()
+  const functions = await repository.selectFunctions()
 
   const enrichedTables = tables.map((table) =>
     withColumns(table, columns, foreignKeys, primaryKeys)
@@ -118,6 +121,7 @@ export const getSchema = async (repository: Repository) => {
     compositeTypes: compactedComposites,
     views: enrichedViews,
     rlsPolicies,
+    functions,
   }
 }
 
