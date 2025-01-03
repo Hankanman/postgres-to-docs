@@ -1,50 +1,14 @@
-# postgres-to-docs
-[![Build Status][ci-image]][ci-url]
-[![License][license-image]][license-url]
+# Postgres to Docs
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hankanman/postgres-to-docs/repolint.yml)
+![NPM Downloads](https://img.shields.io/npm/d18m/%40hankanman%2Fpostgres-to-docs)
+![GitHub License](https://img.shields.io/github/license/hankanman/postgres-to-docs)
+![NPM Version](https://img.shields.io/npm/v/%40hankanman%2Fpostgres-to-docs)
 
-Make your database documentation smoooth by generating markdown for your schema.
-
-## Usage
-
-1.  Install through npm
-    ```bash
-    npm install @hankanman/postgres-to-docs
-    ```
-
-2. Define a `postgrestodocs.json` config file
-    ```json
-    {
-        "host": "localhost",
-        "port": 5432,
-        "user": "user",
-        "password": "password",
-        "database": "database",
-        "schema": "public",
-        "folder": "docs",
-        "fileName": "schema",
-        "includeTables": [],
-        "exludeTables": [],
-        "includeTypes": true,
-        "pureMarkdown": false,
-        "includeRLS": true,
-        "includeToc": true,
-        "includeFunctions": true,
-        "includeDiagram": true,
-        "llmFormat": false
-    }
-    ```
-3. Run the tool
-    ```bash
-    postgres-to-docs
-    ```
-
-## Problem
-You need to get a quick and easy overview of your database schema but don't want to...
+Make your database documentation smooth by generating markdown for your schema. You need to get a quick and easy overview of your database schema but don't want to...
 * Open the source code and find the model definitions
 * Start your database and service, install dependencies, have a proper configuration, and open an external tool like TablePlus or DBeaver
 * Read through your migrations directory to find the latest version of your schema
 * Look through external documentation that might be out of date
-
 
 ## Features
 postgres-to-docs generates comprehensive documentation for your PostgreSQL database schema:
@@ -107,29 +71,47 @@ postgres-to-docs generates comprehensive documentation for your PostgreSQL datab
   - Support for connection string or individual parameters
   - Environment variable support through `.env` files
 
+## Usage
+
+1.  Install through npm
+    ```bash
+    npm install @hankanman/postgres-to-docs
+    ```
+
+2. Define a `postgrestodocs.json` config file
+    ```json
+    {
+        "host": "localhost",
+        "port": 5432,
+        "user": "user",
+        "password": "password",
+        "database": "database",
+        "schema": "public",
+        "folder": "docs",
+        "fileName": "schema",
+        "includeTables": [],
+        "exludeTables": [],
+        "includeTypes": true,
+        "pureMarkdown": false,
+        "includeRLS": true,
+        "includeToc": true,
+        "includeFunctions": true,
+        "includeDiagram": true,
+        "llmFormat": false
+    }
+    ```
+3. Run the tool
+    ```bash
+    postgres-to-docs
+    ```
+
 ### Environment Variables
 You can use environment variables to avoid storing sensitive database credentials in your configuration file. The tool supports both `.env` and `.env.local` files, with `.env.local` taking precedence.
 
-1. Create a `.env` or `.env.local` file:
+Create a `.env` or `.env.local` file or add the following to your existing `.env` file:
 ```env
 # Database connection string
 DB_STRING=postgresql://user:password@localhost:5432/database
-```
-
-2. Reference it in your `postgrestodocs.json`:
-```json
-{
-    "connectionString": null,  // Will use DB_STRING if present
-    "host": "localhost",      // Used if no DB_STRING is present
-    "port": 5432,
-    "user": "user",
-    "password": "password",
-    "database": "database",
-    "schema": "public",
-    "folder": "docs",
-    "fileName": "schema",
-    // ... other options
-}
 ```
 
 The tool will:
