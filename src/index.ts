@@ -15,7 +15,8 @@ export const generateDocumentation = async (
   includeTypes?: boolean,
   pureMarkdown?: boolean,
   includeRLS?: boolean,
-  includeToc?: boolean
+  includeToc?: boolean,
+  includeFunctions?: boolean
 ) => {
   const config = parseConfig(await File.read(configPath))
   const database = await createDatabase(config)
@@ -49,13 +50,16 @@ export const generateDocumentation = async (
     }
 
     // Print list of functions
-    console.log('\nFunctions found:')
-    if (schemaData.functions.length === 0) {
-      console.log('None')
-    } else {
-      schemaData.functions.forEach(func => {
-        console.log(`- ${func.name}(${func.arguments}) -> ${func.returnType}`)
-      })
+    const includeFunctionsFlag = includeFunctions !== undefined ? includeFunctions : config.includeFunctions
+    if (includeFunctionsFlag) {
+      console.log('\nFunctions found:')
+      if (schemaData.functions.length === 0) {
+        console.log('None')
+      } else {
+        schemaData.functions.forEach(func => {
+          console.log(`- ${func.name}(${func.arguments}) -> ${func.returnType}`)
+        })
+      }
     }
 
     // Print list of RLS policies
@@ -80,7 +84,7 @@ export const generateDocumentation = async (
     
     await File.write(
       finalOutputPath, 
-      format(schemaData, includeTypesFlag, pureMarkdownFlag, includeRLSFlag, includeTocFlag)
+      format(schemaData, includeTypesFlag, pureMarkdownFlag, includeRLSFlag, includeTocFlag, includeFunctionsFlag)
     )
     console.log(`\nDocumentation written to ${finalOutputPath}`)
   } catch (e) {

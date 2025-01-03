@@ -23,7 +23,10 @@ const run = async () => {
       rawArguments.includeTables ? rawArguments.includeTables.split(',') : undefined,
       rawArguments.excludeTables ? rawArguments.excludeTables.split(',') : undefined,
       rawArguments.includeTypes !== undefined ? rawArguments.includeTypes === 'true' : undefined,
-      rawArguments.pureMarkdown !== undefined ? rawArguments.pureMarkdown === 'true' : undefined
+      rawArguments.pureMarkdown !== undefined ? rawArguments.pureMarkdown === 'true' : undefined,
+      rawArguments.includeRLS !== undefined ? rawArguments.includeRLS === 'true' : undefined,
+      rawArguments.includeToc !== undefined ? rawArguments.includeToc === 'true' : undefined,
+      rawArguments.includeFunctions !== undefined ? rawArguments.includeFunctions === 'true' : undefined
     )
     console.log('Documentation generated successfully!')
   } catch (e: unknown) {
