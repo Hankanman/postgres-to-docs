@@ -74,7 +74,7 @@ postgres-to-docs generates comprehensive documentation for your PostgreSQL datab
 
 1.  Install through npm
     ```bash
-    npm install @hankanman/postgres-to-docs
+    npm install @klarna/postgres-to-docs
     ```
 
 2. Define a `postgrestodocs.json` config file
