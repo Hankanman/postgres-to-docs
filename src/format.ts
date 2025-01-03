@@ -18,13 +18,20 @@ export const format = (
   pureMarkdown: boolean = false,
   includeRLS: boolean = true,
   includeToc: boolean = true,
-  includeFunctions: boolean = true
+  includeFunctions: boolean = true,
+  includeDiagram: boolean = false,
+  llmFormat: boolean = false
 ) => {
+  if (llmFormat) {
+    return formatLLM(schema)
+  }
+
   const customTypeNames = schema.customTypes.map((t) => t.name)
   const compositeTypeNames = schema.compositeTypes.map((t) => t.name)
   const typeNames = new Set(customTypeNames.concat(compositeTypeNames))
 
   const sections = [
+    ...(includeDiagram ? [generateMermaidDiagram(schema.tables)] : []),
     generateTableSection(schema.tables, typeNames, schema.rlsPolicies, pureMarkdown, includeRLS),
     generateViewsSection(schema.views, typeNames, pureMarkdown),
     ...(includeTypes ? [generateTypesSection(
@@ -53,6 +60,91 @@ export const format = (
       ...sections
     ])
   }
+}
+
+const formatLLM = (schema: Schema): string => {
+  const tables = schema.tables.map(table => ({
+    name: table.name,
+    comment: table.comment,
+    columns: table.columns.map(col => ({
+      name: col.name,
+      type: col.dataType,
+      pk: col.isPrimaryKey,
+      nullable: col.isNullable,
+      fk: col.foreignKey,
+      comment: col.comment,
+      default: col.default
+    }))
+  }))
+
+  const views = schema.views.map(view => ({
+    name: view.name,
+    comment: view.comment,
+    columns: view.columns.map(col => ({
+      name: col.name,
+      type: col.dataType,
+      comment: col.comment
+    }))
+  }))
+
+  const types = schema.customTypes.map(type => ({
+    name: type.name,
+    values: type.elements
+  }))
+
+  const compositeTypes = schema.compositeTypes.map(type => ({
+    name: type.name,
+    fields: type.fields.map(field => ({
+      name: field.name,
+      type: field.dataType,
+      required: field.isRequired
+    }))
+  }))
+
+  const functions = schema.functions.map(func => ({
+    name: func.name,
+    args: func.arguments,
+    returns: func.returnType,
+    language: func.language,
+    volatility: func.volatility,
+    definition: func.definition,
+    signature: `${func.name}(${func.arguments}) RETURNS ${func.returnType}`
+  }))
+
+  const rls = schema.rlsPolicies.map(policy => ({
+    table: policy.table,
+    name: policy.name,
+    cmd: policy.command,
+    roles: policy.roles,
+    definition: policy.definition,
+    using: policy.using || null,
+    withCheck: policy.withCheck || null,
+    summary: `${policy.name} on ${policy.table} for ${policy.command} (roles: ${policy.roles.join(', ')})`
+  }))
+
+  return JSON.stringify({
+    metadata: {
+      description: "PostgreSQL database schema documentation in a format optimized for LLM consumption. This schema includes tables, views, types, functions, and row-level security (RLS) policies. Each table includes its columns with their types, constraints, and relationships. Functions include their full definitions and signatures. RLS policies include their complete definitions and conditions.",
+      version: "1.0",
+      generated: new Date().toISOString(),
+      schemaStats: {
+        tableCount: tables.length,
+        viewCount: views.length,
+        functionCount: functions.length,
+        customTypeCount: types.length,
+        compositeTypeCount: compositeTypes.length,
+        rlsPolicyCount: rls.length
+      }
+    },
+    schema: {
+      tables,
+      views,
+      types,
+      compositeTypes,
+      functions,
+      rls
+    }
+  }, null, 2)
 }
 
 const generateTableOfContents = (sections: any[]): TocItem[] => {
@@ -216,6 +308,7 @@ const generateTableDescription = (
 
   return [
     { h3: nameWithAnchor },
+    ...(tableDescription.comment ? [{ p: `*${tableDescription.comment}*` }] : []),
     generateMarkdownTable(tableDescription.columns, typeNames, pureMarkdown),
     ...(includeRLS && tablePolicies.length > 0 ? generateRLSPoliciesSection(tablePolicies, pureMarkdown) : []),
   ]
@@ -251,13 +344,14 @@ const generateMarkdownTable = (
   typeNames: Set<string>,
   pureMarkdown: boolean
 ) => {
-  const headers = ['Name', 'Type', 'Default', 'Nullable', 'References']
+  const headers = ['Name', 'Type', 'Default', 'Nullable', 'References', 'Description']
   const rows = columns.map((column) => [
     formatColumnName(column.name, column.isPrimaryKey, pureMarkdown),
     formatDataType(column.dataType, typeNames, pureMarkdown),
     formatDefault(column.default),
     formatIsNullable(column.isNullable),
     formatForeignKey(pureMarkdown, column.foreignKey),
+    column.comment || '',
   ])
 
   return {
@@ -324,5 +418,49 @@ const generateFunctionDescription = (
     { p: '**Volatility**: ' + func.volatility },
     { p: '**Definition**:' },
     { code: { language: 'sql', content: func.definition.trim() } },
+  ]
+}
+
+const generateMermaidDiagram = (tables: TableDescription[]) => {
+  const mermaidLines = ['erDiagram']
+  const relationships = new Set<string>()
+
+  // Add tables and their columns
+  tables.forEach(table => {
+    const tableName = table.name
+    const columns = table.columns.map(col => {
+      const type = col.dataType.replace(/[\s()]/g, '_') // Replace spaces and parentheses
+      const markers = []
+      if (!col.isNullable) markers.push('REQUIRED')
+      if (col.isPrimaryKey) markers.push('PK')
+      const markerStr = markers.length > 0 ? ` "${markers.join(' ')}"` : ''
+      return `    ${col.name} ${type}${markerStr}`
+    })
+    
+    mermaidLines.push(`  ${tableName} {`)
+    mermaidLines.push(...columns)
+    mermaidLines.push('  }')
+
+    // Collect relationships
+    table.columns.forEach(col => {
+      if (col.foreignKey) {
+        const [targetTable, targetColumn] = col.foreignKey.split('.')
+        // Use correct Mermaid ER relationship syntax:
+        // ||--o{ : exactly one to zero or more
+        // }o--o{ : zero or one to zero or more
+        // ||--|| : exactly one to exactly one
+        // }o--|| : zero or one to exactly one
+        const relationship = col.isNullable ? '}o--||' : '||--||'
+        relationships.add(`  ${tableName} ${relationship} ${targetTable} : "${col.name} -> ${targetColumn}"`)
+      }
+    })
+  })
+
+  // Add relationships after all tables
+  mermaidLines.push(...Array.from(relationships))
+
+  return [
+    { h2: 'Schema Diagram' },
+    { code: { language: 'mermaid', content: mermaidLines.join('\n') } }
   ]
 }

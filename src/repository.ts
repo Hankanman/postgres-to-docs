@@ -3,13 +3,16 @@ import { Decoder } from 'elm-decoders'
 
 export type Table = {
   name: string
+  comment?: string
 }
 
 const tableResultDecoder: Decoder<Table[]> = Decoder.array(
   Decoder.object({
     tablename: Decoder.string,
+    description: Decoder.optional(Decoder.string)
   }).map((res) => ({
     name: res.tablename,
+    comment: res.description
   }))
 )
 
@@ -19,6 +22,7 @@ export type Column = {
   default?: string
   isNullable: boolean
   dataType: string
+  comment?: string
 }
 
 const columnResultDecoder: Decoder<Column[]> = Decoder.array(
@@ -29,14 +33,16 @@ const columnResultDecoder: Decoder<Column[]> = Decoder.array(
     is_nullable: Decoder.string.map((s) => s === 'YES'),
     data_type: Decoder.string,
     udt_name: Decoder.string,
-    character_maximum_length: Decoder.optional(Decoder.number)
+    character_maximum_length: Decoder.optional(Decoder.number),
+    column_comment: Decoder.optional(Decoder.string)
   }).map((res) => {
     return {
       table: res.table_name,
       name: res.column_name,
       default: res.column_default,
       isNullable: res.is_nullable,
-      dataType: get_datatype(res)
+      dataType: get_datatype(res),
+      comment: res.column_comment
     }
   })
 )
@@ -53,13 +59,16 @@ const get_datatype = (res: { udt_name: string, data_type: string, character_maxi
 
 export type View = {
   name: string
+  comment?: string
 }
 
 const viewResultDecoder: Decoder<View[]> = Decoder.array(
   Decoder.object({
     table_name: Decoder.string,
+    description: Decoder.optional(Decoder.string)
   }).map((res) => ({
     name: res.table_name,
+    comment: res.description
   }))
 )
 
@@ -226,8 +235,11 @@ export const createRepository = (
 
   const selectTables = async () => {
     const queryString = `
-      SELECT * 
-      FROM pg_catalog.pg_tables 
+      SELECT 
+        t.tablename,
+        pg_catalog.obj_description(c.oid, 'pg_class') as description
+      FROM pg_catalog.pg_tables t
+      JOIN pg_catalog.pg_class c ON c.relname = t.tablename
       WHERE tablename NOT LIKE 'sql_%' 
         AND tablename NOT LIKE 'pg_%' 
         ${schemaFilter}
@@ -240,11 +252,21 @@ export const createRepository = (
 
   const selectColumns = async () => {
     const queryString = `
-      SELECT * 
-      FROM information_schema.columns 
-      WHERE table_schema = $1
-        ${tableFilter ? `AND (${tableFilter.replace(/tablename/g, 'table_name').slice(4)})` : ''}
-      ORDER BY ordinal_position
+      SELECT 
+        c.table_name,
+        c.column_name,
+        c.column_default,
+        c.is_nullable,
+        c.data_type,
+        c.udt_name,
+        c.character_maximum_length,
+        pgd.description as column_comment
+      FROM information_schema.columns c
+      LEFT JOIN pg_catalog.pg_statio_all_tables st ON (c.table_schema = st.schemaname AND c.table_name = st.relname)
+      LEFT JOIN pg_catalog.pg_description pgd ON (pgd.objoid = st.relid AND pgd.objsubid = c.ordinal_position)
+      WHERE c.table_schema = $1
+        ${tableFilter ? `AND (${tableFilter.replace(/tablename/g, 'c.table_name').slice(4)})` : ''}
+      ORDER BY c.ordinal_position
     `
     const result = await query(queryString, [schema || 'public'])
     const decoded = columnResultDecoder.guard(result.rows)
@@ -253,11 +275,14 @@ export const createRepository = (
 
   const selectViews = async () => {
     const queryString = `
-      SELECT table_name 
-      FROM INFORMATION_SCHEMA.views 
-      WHERE table_schema = ANY (current_schemas(false)) 
-        ${schemaFilter ? schemaFilter.replace('schemaname', 'table_schema') : ''}
-        ${tableFilter ? tableFilter.replace('tablename', 'table_name') : ''}
+      SELECT 
+        v.table_name,
+        pg_catalog.obj_description(c.oid, 'pg_class') as description
+      FROM INFORMATION_SCHEMA.views v
+      JOIN pg_catalog.pg_class c ON c.relname = v.table_name
+      WHERE v.table_schema = ANY (current_schemas(false)) 
+        ${schemaFilter ? schemaFilter.replace('schemaname', 'v.table_schema') : ''}
+        ${tableFilter ? tableFilter.replace('tablename', 'v.table_name') : ''}
     `
     const result = await query(queryString)
     const decoded = viewResultDecoder.guard(result.rows)

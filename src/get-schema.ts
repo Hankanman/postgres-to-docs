@@ -18,6 +18,7 @@ export type ColumnDescription = Column & {
 
 export type TableDescription = {
   name: string
+  comment?: string
   columns: ColumnDescription[]
 }
 
@@ -86,6 +87,7 @@ const withColumns = (
   })
   return {
     name: source.name,
+    comment: source.comment,
     columns: withKeys,
   }
 }

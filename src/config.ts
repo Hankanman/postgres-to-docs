@@ -33,10 +33,13 @@ export type Config = {
   excludeTables?: string[]
   includeTypes: boolean
   pureMarkdown: boolean
-  output?: string
+  folder?: string
+  fileName?: string
   includeRLS?: boolean
   includeToc?: boolean
   includeFunctions?: boolean
+  includeDiagram?: boolean
+  llmFormat?: boolean
 }
 
 const configDecoder = Decoder.object({
@@ -51,10 +54,13 @@ const configDecoder = Decoder.object({
   excludeTables: Decoder.optional(Decoder.array(Decoder.string)),
   includeTypes: Decoder.optional(Decoder.boolean).map(x => x ?? true),
   pureMarkdown: Decoder.optional(Decoder.boolean).map(x => x ?? false),
-  output: Decoder.optional(Decoder.string),
+  folder: Decoder.optional(Decoder.string),
+  fileName: Decoder.optional(Decoder.string),
   includeRLS: Decoder.optional(Decoder.boolean).map(x => x ?? true),
   includeToc: Decoder.optional(Decoder.boolean).map(x => x ?? false),
-  includeFunctions: Decoder.optional(Decoder.boolean).map(x => x ?? true)
+  includeFunctions: Decoder.optional(Decoder.boolean).map(x => x ?? true),
+  includeDiagram: Decoder.optional(Decoder.boolean).map(x => x ?? false),
+  llmFormat: Decoder.optional(Decoder.boolean).map(x => x ?? false)
 })
 
 export const parseConfig = (environment: any): Config => {
@@ -65,10 +71,14 @@ export const parseConfig = (environment: any): Config => {
     config.connectionString = process.env.DB_STRING
   }
 
-  if (!config.output && config.database) {
-    config.output = `schema-${config.database}.md`
-  } else if (!config.output) {
-    config.output = 'schema.md'
+  // Set default folder and fileName if not provided
+  if (!config.folder) {
+    config.folder = 'docs'
+  }
+  if (!config.fileName && config.database) {
+    config.fileName = `schema-${config.database}`
+  } else if (!config.fileName) {
+    config.fileName = 'schema'
   }
 
   return config

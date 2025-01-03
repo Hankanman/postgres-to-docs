@@ -5,12 +5,15 @@
     "password": "postgres",
     "database": "postgres",
     "schema": "public",
-    "output": "docs/schema.md",
+    "folder": "docs",
+    "fileName": "schema",
     "includeTables": [],
     "exludeTables": [],
-    "includeTypes": false,
+    "includeTypes": true,
     "pureMarkdown": true,
     "includeRLS": true,
-    "includeToc": false,
-    "includeFunctions": true
+    "includeToc": true,
+    "includeFunctions": true,
+    "includeDiagram": true,
+    "llmFormat": true
 }

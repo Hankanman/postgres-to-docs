@@ -18,7 +18,8 @@ const run = async () => {
     console.log('Generating documentation...')
     await generateDocumentation(
       configPath,
-      rawArguments.output,
+      rawArguments.folder,
+      rawArguments.fileName,
       rawArguments.schema,
       rawArguments.includeTables ? rawArguments.includeTables.split(',') : undefined,
       rawArguments.excludeTables ? rawArguments.excludeTables.split(',') : undefined,
@@ -26,7 +27,9 @@ const run = async () => {
       rawArguments.pureMarkdown !== undefined ? rawArguments.pureMarkdown === 'true' : undefined,
       rawArguments.includeRLS !== undefined ? rawArguments.includeRLS === 'true' : undefined,
       rawArguments.includeToc !== undefined ? rawArguments.includeToc === 'true' : undefined,
-      rawArguments.includeFunctions !== undefined ? rawArguments.includeFunctions === 'true' : undefined
+      rawArguments.includeFunctions !== undefined ? rawArguments.includeFunctions === 'true' : undefined,
+      rawArguments.includeDiagram !== undefined ? rawArguments.includeDiagram === 'true' : undefined,
+      rawArguments.llmFormat !== undefined ? rawArguments.llmFormat === 'true' : undefined
     )
     console.log('Documentation generated successfully!')
   } catch (e: unknown) {

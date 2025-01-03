@@ -8,7 +8,8 @@ import * as path from 'path'
 
 export const generateDocumentation = async (
   configPath: string,
-  outputPath?: string,
+  outputFolder?: string,
+  outputFileName?: string,
   schema?: string,
   includeTables?: string[],
   excludeTables?: string[],
@@ -16,7 +17,9 @@ export const generateDocumentation = async (
   pureMarkdown?: boolean,
   includeRLS?: boolean,
   includeToc?: boolean,
-  includeFunctions?: boolean
+  includeFunctions?: boolean,
+  includeDiagram?: boolean,
+  llmFormat?: boolean
 ) => {
   const config = parseConfig(await File.read(configPath))
   const database = await createDatabase(config)
@@ -76,17 +79,49 @@ export const generateDocumentation = async (
     const pureMarkdownFlag = pureMarkdown !== undefined ? pureMarkdown : config.pureMarkdown
     const includeRLSFlag = includeRLS !== undefined ? includeRLS : config.includeRLS
     const includeTocFlag = includeToc !== undefined ? includeToc : config.includeToc
-    const finalOutputPath = outputPath || config.output || `schema-${config.database}.md`
+    const includeDiagramFlag = includeDiagram !== undefined ? includeDiagram : config.includeDiagram
+    const llmFormatFlag = llmFormat !== undefined ? llmFormat : config.llmFormat
+    const folder = outputFolder || config.folder || 'docs'
+    const fileName = outputFileName || config.fileName || `schema-${config.database}`
     
     // Ensure the output directory exists
-    const outputDir = path.dirname(finalOutputPath)
-    await File.ensureDirectoryExists(outputDir)
+    await File.ensureDirectoryExists(folder)
     
+    // Always write the markdown file
+    const mdPath = path.join(folder, `${fileName}.md`)
     await File.write(
-      finalOutputPath, 
-      format(schemaData, includeTypesFlag, pureMarkdownFlag, includeRLSFlag, includeTocFlag, includeFunctionsFlag)
+      mdPath,
+      format(
+        schemaData, 
+        includeTypesFlag, 
+        pureMarkdownFlag, 
+        includeRLSFlag, 
+        includeTocFlag, 
+        includeFunctionsFlag, 
+        includeDiagramFlag,
+        false // Force markdown format
+      )
     )
-    console.log(`\nDocumentation written to ${finalOutputPath}`)
+    console.log(`\nMarkdown documentation written to ${mdPath}`)
+
+    // If llmFormat is true, also write the JSON file
+    if (llmFormatFlag) {
+      const jsonPath = path.join(folder, `${fileName}.json`)
+      await File.write(
+        jsonPath,
+        format(
+          schemaData, 
+          includeTypesFlag, 
+          pureMarkdownFlag, 
+          includeRLSFlag, 
+          includeTocFlag, 
+          includeFunctionsFlag, 
+          includeDiagramFlag,
+          true // Force LLM format
+        )
+      )
+      console.log(`JSON documentation written to ${jsonPath}`)
+    }
   } catch (e) {
     throw e
   } finally {
